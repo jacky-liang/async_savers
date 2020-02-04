@@ -1,7 +1,8 @@
 import os
 from time import sleep, time
 
-from async_savers import AsyncSaver, load_shards
+import pandas as pd
+from async_savers import AsyncCSVSaver
 
 
 if __name__ == "__main__":
@@ -9,8 +10,8 @@ if __name__ == "__main__":
     if not os.path.exists(save_path):
         os.makedirs(save_path)
 
-    data_name = 'async_saver_demo'
-    saver = AsyncSaver(save_path, data_name, save_every=5)
+    data_name = 'async_saver_csv_demo.csv'
+    saver = AsyncCSVSaver(save_path, data_name, save_every=5)
     saver.start()
 
     print('Saving data')
@@ -23,8 +24,8 @@ if __name__ == "__main__":
     saver.stop()
 
     data_path = os.path.join(save_path, data_name)
-    print('This should\'ve saved 3 shards in {}'.format(data_path))
+    print('This should\'ve saved a csv file in {}'.format(data_path))
 
     print('Loading saved data')
-    saved_data = load_shards(data_path)
+    saved_data = pd.read_csv(data_path)
     print(saved_data)

@@ -86,7 +86,10 @@ class AsyncCSVSaver(AsyncSaver):
         idx = 0
         start_time = time()
 
-        filename = os.path.join(self._save_path, '{}.csv'.format(self._file_prefix))
+        if not self._file_prefix.endswith('.csv'):
+            self._file_prefix = '{}.csv'.format(self._file_prefix)
+
+        filename = os.path.join(self._save_path, self._file_prefix)
 
         get_run = lambda : True
         run = get_run()
