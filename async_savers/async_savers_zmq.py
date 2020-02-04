@@ -25,8 +25,9 @@ class AsyncSaverZMQWorker(Process):
                     self._savers[name].start()
                 elif cmd == 'save':
                     self._savers[name].save(msg['data'])
-                elif cmd == 'stop':
+                elif cmd == 'stop_saver':
                     self._savers[name].stop()
+                    self._savers.pop(name, None)
                 else:
                     logging.warn('Unknown cmd!')
             except Exception as e:
@@ -49,10 +50,12 @@ class AsyncSaverZMQProducer(Process):
         c = 0
         while True:
             msg = self._q.get()
+            if msg['cmd'] == 'stop':
+                break
             self._prod.push(msg)
             c += 1
 
-    def new_saver(self, name, async_saver_class, *args, **kwargs):
+    def new_saver(self, name, async_saver_class, *saver_args, **saver_kwargs):
         if name in self._saver_names:
             raise ValueError('Saver name {} already exists!'.format(name))
         self._saver_names.add(name)
@@ -61,8 +64,8 @@ class AsyncSaverZMQProducer(Process):
             'cmd': 'new',
             'name': name,
             'async_saver_class': async_saver_class,
-            'args': args,
-            'kwargs': kwargs
+            'args': saver_args,
+            'kwargs': saver_kwargs
         })
 
     def save(self, name, data):
@@ -75,12 +78,17 @@ class AsyncSaverZMQProducer(Process):
             'data': data
         })
 
-    def stop(self, name):
+    def stop_saver(self, name):
         if name not in self._saver_names:
             raise ValueError('Saver with name {} has not been instantiated! Call new_saver first!'.format(name))
         self._saver_names.remove(name)
 
         self._q.put({
-            'cmd': 'stop',
+            'cmd': 'stop_saver',
             'name': name
+        })
+
+    def stop(self):
+        self._q.put({
+            'cmd': 'stop'
         })
