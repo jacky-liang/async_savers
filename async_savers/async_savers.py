@@ -13,10 +13,12 @@ import numpy as np
 import pandas as pd
 from skimage.io import imsave
 
+from .utils import make_shard_template
+
 
 class AsyncSaver(Process):
 
-    def __init__(self, save_path, file_prefix, save_every=10):
+    def __init__(self, save_path, file_prefix, save_every=10, max_n_shards=6):
         super(AsyncSaver, self).__init__()
         self._save_path = save_path
         self._save_every = save_every
@@ -24,6 +26,8 @@ class AsyncSaver(Process):
 
         self._data_q = Queue()
         self._stop_q = Queue()
+
+        self._shard_template = make_shard_template(max_n_shards)
 
     def run(self):
         idx = 0
@@ -52,7 +56,7 @@ class AsyncSaver(Process):
                     pass 
 
                 if done or new_item and len(data_list) % self._save_every == 0:
-                    with open(os.path.join(save_path, 'shard_{:06d}.pkl'.format(idx)), 'wb') as f:
+                    with open(os.path.join(save_path, self._shard_template.format(idx)), 'wb') as f:
                         dump(data_list, f)
 
                     data_list = []
