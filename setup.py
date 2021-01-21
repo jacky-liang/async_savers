@@ -10,9 +10,9 @@ requirements = [
 ]
 
 setup(name='async_savers',
-        version='0.1.0',
+        version='0.2.0',
         author='Jacky Liang',
-        author_email='jackyliang42@gmail.com',
+        author_email='jackyliang@cmu.edu',
         package_dir = {'': '.'},
         packages=['async_savers'],
         install_requires=requirements

@@ -49,21 +49,19 @@ class AsyncSaver(Process):
                 except Empty:
                     pass
 
-                done = False
                 try:
                     done = self._stop_q.get_nowait() == 'stop'
+                    if done:
+                        get_run = lambda : not self._data_q.empty()
                 except Empty:
                     pass 
 
-                if done or new_item and len(data_list) % self._save_every == 0:
+                if new_item and len(data_list) % self._save_every == 0:
                     with open(os.path.join(save_path, self._shard_template.format(idx)), 'wb') as f:
                         dump(data_list, f)
 
                     data_list = []
                     idx += 1
-
-                if done:
-                    break 
 
                 run = get_run()
                 sleep(1e-3)
@@ -76,6 +74,8 @@ class AsyncSaver(Process):
     def stop(self):
         self._stop_q.put('stop')
         logging.info('Waiting for {} to finish.'.format(self.__class__))
+        while self.is_alive():
+            sleep(1e-3)
 
 
 class AsyncCSVSaver(AsyncSaver):
